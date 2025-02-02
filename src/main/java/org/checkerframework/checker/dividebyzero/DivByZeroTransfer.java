@@ -74,9 +74,59 @@ public class DivByZeroTransfer extends CFTransfer {
    * @param rhs the lattice point for the right-hand side of the comparison expression
    * @return a refined type for lhs
    */
+
   private AnnotationMirror refineLhsOfComparison(
       Comparison operator, AnnotationMirror lhs, AnnotationMirror rhs) {
-    // TODO
+
+    AnnotationMirror zero = reflect(Zero.class);
+    AnnotationMirror nonzero = reflect(Nonzero.class);
+
+    // select which operator
+    switch (operator) {
+
+      /** == */
+      case EQ:
+        return rhs;
+
+      /** != */
+      case NE:
+        if (equal(rhs, zero)){
+          return nonzero;
+        } else {
+          return top();
+        }
+      
+      /** < */
+      case LT:
+        if (equal(rhs, zero)){
+          return nonzero;
+        } else {
+          return top();
+        }
+        break;
+
+      /** <= */
+      case LE:
+        return top();
+        break;
+
+      /** > */
+      case GT:
+        if (equal(rhs, zero)){
+          return nonzero;
+        } else {
+          return top();
+        }
+        break;
+
+      /** >= */
+      case GE:
+        return top();
+        break;
+        
+      default:
+        break;
+    }
     return lhs;
   }
 
@@ -97,8 +147,155 @@ public class DivByZeroTransfer extends CFTransfer {
    */
   private AnnotationMirror arithmeticTransfer(
       BinaryOperator operator, AnnotationMirror lhs, AnnotationMirror rhs) {
-    // TODO
-    return top();
+    switch (operator){
+
+      /** + */
+      case PLUS:
+        // bottom cases
+        if (equal(lhs, bottom())){
+          return bottom();
+        } else if (equal(rhs, bottom())){
+          return bottom();
+        // top cases
+        } else if (equal(lhs, top())){
+          return top();
+        } else if (equal(rhs, top())){
+          return top();
+        // lhs nonzero cases
+        } else if (equal(lhs, nonzero)){
+          if (equal(rhs, nonzero)){
+            return top();
+          } else if (equal(rhs, zero)){
+            return lhs;
+          }
+        // lhs zero cases
+        } else if (equal(lhs, zero)){
+          if (equal(rhs, nonzero)){
+            return rhs;
+          } else if (equal(rhs, zero)){
+            return zero;
+          }
+        //else: return bottom
+        } else {
+          return bottom();
+        }
+
+      /** - */
+      case MINUS:
+        // bottom cases
+        if (equal(lhs, bottom())){
+          return bottom();
+        } else if (equal(rhs, bottom())){
+          return bottom();
+        // top cases
+        } else if (equal(lhs, top())){
+          return top();
+        } else if (equal(rhs, top())){
+          return top();
+        // lhs nonzero cases
+        } else if (equal(lhs, nonzero)){
+          if (equal(rhs, nonzero)){
+            return top();
+          } else if (equal(rhs, zero)){
+            return lhs;
+          }
+        // lhs zero cases
+        } else if (equal(lhs, zero)){
+          if (equal(rhs, nonzero)){
+            return rhs;
+          } else if (equal(rhs, zero)){
+            return zero;
+          }
+        //else: return bottom
+        } else {
+          return bottom();
+        }
+
+      /** * */
+      case TIMES:
+        // bottom cases
+        if (equal(lhs, bottom())){
+          return bottom();
+        } else if (equal(rhs, bottom())){
+          return bottom();
+        // top cases
+        } else if (equal(lhs, top())){
+          return top();
+        } else if (equal(rhs, top())){
+          return top();
+        // lhs nonzero cases
+        } else if (equal(lhs, nonzero)){
+          if (equal(rhs, nonzero)){
+            return nonzero();
+          } else if (equal(rhs, zero)){
+            return zero;
+          }
+        // lhs zero cases
+        } else if (equal(lhs, zero)){
+          return zero;
+        //else: return bottom
+        } else {
+          return bottom();
+        }
+        
+      /** / */
+      case DIVIDE:
+        // bottom cases
+        if (equal(lhs, bottom())){
+          return bottom();
+        } else if (equal(rhs, bottom())){
+          return bottom();
+        // divide by zero case!
+        if (equal(rhs, zero)){
+          return bottom():
+        }
+        // top cases
+        } else if (equal(lhs, top())){
+          return top();
+        } else if (equal(rhs, top())){
+          return top();
+        // divide by nonzero case
+        } else if (equal(rhs, nonzero)){
+          if (equal(lhs, nonzero)){
+            return nonzero;
+          } else if (equal(lhs, zero)){
+            return zero;
+          }
+        //else: return bottom
+        } else {
+          return bottom();
+        }
+
+      /** % */
+      case MOD:
+        // bottom cases
+        if (equal(lhs, bottom())){
+          return bottom();
+        } else if (equal(rhs, bottom())){
+          return bottom();
+        // mod zero case!
+        if (equal(rhs, zero)){
+          return bottom():
+        }
+        // top cases
+        } else if (equal(lhs, top())){
+          return top();
+        } else if (equal(rhs, top())){
+          return top();
+        // mod nonzero case
+        } else if (equal(rhs, nonzero)){
+          if (equal(lhs, nonzero)){
+            return top();
+          } else if (equal(lhs, zero)){
+            return zero;
+          }
+        //else: return bottom
+        } else {
+          return bottom();
+        }
+    default:
+      return top();
+    }
   }
 
   // ========================================================================
